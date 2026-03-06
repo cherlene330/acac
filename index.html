@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>教材供應商 | 精確訂單管理系統</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #1a2a6c;
+            --secondary: #2c3e50;
+            --accent: #e67e22;
+            --bg: #f0f2f5;
+        }
+
+        body { font-family: 'Noto Sans TC', sans-serif; margin: 0; background: var(--bg); color: #333; padding-bottom: 120px; }
+        
+        .hero {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white; padding: 30px 20px; text-align: center; border-bottom: 5px solid var(--accent);
+        }
+
+        .container { max-width: 600px; margin: -30px auto 0; padding: 0 15px; }
+
+        .order-card {
+            background: white; border-radius: 15px; padding: 25px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        .section-title { 
+            font-size: 1.1rem; color: var(--primary); font-weight: bold; 
+            margin: 20px 0 10px; border-bottom: 2px solid #eee; padding-bottom: 5px;
+        }
+
+        .form-group { margin-bottom: 15px; }
+        label { display: block; font-size: 0.9rem; margin-bottom: 5px; color: #555; }
+        
+        select, input {
+            width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ccc;
+            font-size: 1rem; box-sizing: border-box; background: #fff;
+        }
+
+        .price-box {
+            background: #fffbf0; border-radius: 10px; padding: 15px;
+            text-align: center; margin-top: 25px; border: 1px solid #ffe8cc;
+        }
+
+        .total-amount { font-size: 2.2rem; color: var(--accent); font-weight: bold; }
+
+        .footer-bar {
+            position: fixed; bottom: 0; left: 0; width: 100%;
+            background: white; padding: 20px 0; box-shadow: 0 -5px 15px rgba(0,0,0,0.1);
+        }
+        .footer-content { max-width: 600px; margin: 0 auto; padding: 0 15px; }
+
+        .btn-line {
+            background: #25d366; color: white; border: none; padding: 15px;
+            border-radius: 10px; font-size: 1.1rem; font-weight: bold; cursor: pointer;
+            width: 100%; display: block; text-align: center; text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+
+<div class="hero">
+    <h1>教材訂購系統</h1>
+    <p>服務專員：0989547204</p>
+</div>
+
+<div class="container">
+    <div class="order-card" data-aos="fade-up">
+        
+        <div class="section-title">📍 基本配送資訊</div>
+        <div class="form-group">
+            <label>任教學校名稱</label>
+            <input type="text" id="schoolName" placeholder="例如：大安國小">
+        </div>
+        <div class="form-group">
+            <label>老師/訂購人姓名</label>
+            <input type="text" id="teacherName" placeholder="例如：王小明老師">
+        </div>
+
+        <div class="section-title">📚 書籍選購明細</div>
+        <div class="form-group">
+            <label>版本</label>
+            <select id="brand">
+                <option value="翰林">翰林出版</option>
+                <option value="南一">南一書局</option>
+            </select>
+        </div>
+        
+        <div style="display: flex; gap: 10px;">
+            <div class="form-group" style="flex: 1;">
+                <label>年級</label>
+                <select id="grade">
+                    <option>一年級</option><option>二年級</option><option>三年級</option>
+                    <option>四年級</option><option>五年級</option><option>六年級</option>
+                </select>
+            </div>
+            <div class="form-group" style="flex: 1;">
+                <label>科目</label>
+                <select id="subject">
+                    <option>國語</option><option>數學</option><option>英文</option>
+                    <option>自然</option><option>社會</option><option>生活</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>種類</label>
+            <select id="type" onchange="calc()">
+                <option value="課本" data-p="150">課本 ($150)</option>
+                <option value="習作" data-p="120">習作 ($120)</option>
+                <option value="評量" data-p="250">評量 ($250)</option>
+                <option value="測驗卷" data-p="200">測驗卷 ($200)</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>數量</label>
+            <input type="number" id="qty" value="1" min="1" oninput="calc()">
+        </div>
+
+        <div class="price-box">
+            <div id="status" style="font-size: 0.85rem; color: #28a745; font-weight: bold;"></div>
+            <div class="total-amount" id="total">$0</div>
+            <div style="font-size: 0.8rem; color: #999;">預計採購總額</div>
+        </div>
+    </div>
+</div>
+
+<div class="footer-bar">
+    <div class="footer-content">
+        <button class="btn-line" onclick="send()">✅ 生成訂單並傳送至 LINE</button>
+    </div>
+</div>
+
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+<script>
+    AOS.init();
+
+    function calc() {
+        const t = document.getElementById('type');
+        const p = t.options[t.selectedIndex].getAttribute('data-p');
+        const q = document.getElementById('qty').value || 0;
+        let d = 1;
+        let s = "";
+
+        if (q >= 500) { d = 0.75; s = "✨ 已套用大宗 75 折"; }
+        else if (q >= 100) { d = 0.85; s = "✅ 已套用團購 85 折"; }
+        else if (q >= 30) { d = 0.9; s = "💡 已套用優惠 9 折"; }
+
+        document.getElementById('status').innerText = s;
+        document.getElementById('total').innerText = "$" + Math.round(p * q * d).toLocaleString();
+    }
+
+    function send() {
+        const school = document.getElementById('schoolName').value;
+        const teacher = document.getElementById('teacherName').value;
+        if(!school || !teacher) { alert('請填寫學校與老師姓名，以便安排配送！'); return; }
+
+        const brand = document.getElementById('brand').value;
+        const grade = document.getElementById('grade').value;
+        const subject = document.getElementById('subject').value;
+        const type = document.getElementById('type').value;
+        const qty = document.getElementById('qty').value;
+        const total = document.getElementById('total').innerText;
+
+        const msg = `【新教材訂單需求】\n------------------\n🏢 學校：${school}\n👩‍🏫 老師：${teacher}\n------------------\n📖 版本：${brand}\n分級：${grade} ${subject}\n種類：${type}\n數量：${qty} 本\n💰 預估總額：${total}\n------------------\n請業務員(0989547204)確認訂單。`;
+
+        window.open(`https://line.me/R/msg/text/?${encodeURIComponent(msg)}`, '_blank');
+    }
+    calc();
+</script>
+
+</body>
+</html>
